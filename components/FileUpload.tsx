@@ -24,6 +24,7 @@ export default function FileUpload() {
   const [selectedSheet, setSelectedSheet] = useState<string>('')
   const [errors, setErrors] = useState<ValidationError[]>([])
   const [isUploading, setIsUploading] = useState(false)
+  const [importStatus, setImportStatus] = useState('Import Valid Rows')
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
@@ -122,6 +123,7 @@ export default function FileUpload() {
       if (!response.ok) throw new Error('Import failed')
       
       // Handle success
+      setImportStatus('Imported')
     } catch (error) {
       console.error('Import error:', error)
     }
@@ -173,7 +175,7 @@ export default function FileUpload() {
           {errors.length > 0 && <ValidationErrors errors={errors} />}
 
           <Button onClick={handleImport}>
-            Import Valid Rows
+            {importStatus}
           </Button>
         </div>
       )}
