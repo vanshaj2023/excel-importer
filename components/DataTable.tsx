@@ -15,7 +15,7 @@ import { Trash2 } from 'lucide-react'
 import { ValidationError } from 'next/dist/compiled/amphtml-validator'
 
 interface DataTableProps {
-  data: any[]
+  data: Record<string, unknown>[]
   errors: ValidationError[]
 }
 
@@ -76,9 +76,9 @@ export default function DataTable({ data, errors }: DataTableProps) {
               <tr key={index} className={
                 errors.some(e => e.row === index + 2) ? 'bg-red-50' : ''
               }>
-                <td className="border p-2">{row.Name}</td>
-                <td className="border p-2">{formatNumber(row.Amount)}</td>
-                <td className="border p-2">{formatDate(row.Date)}</td>
+                <td className="border p-2">{row.Name as string}</td>
+                <td className="border p-2">{formatNumber(row.Amount as number)}</td>
+                <td className="border p-2">{formatDate(row.Date as string)}</td>
                 <td className="border p-2">{row.Verified ? 'Yes' : 'No'}</td>
                 <td className="border p-2">
                   <button

@@ -25,10 +25,10 @@ export async function POST(request: Request) {
     await mongoose.connect(MONGODB_URI)
     const { data, sheet } = await request.json()
 
-    const documents = data.map((row: any) => ({
-      name: row.Name,
-      amount: row.Amount,
-      date: new Date(row.Date),
+    const documents = data.map((row: Record<string, unknown>) => ({
+      name: row.Name as string,
+      amount: row.Amount as number,
+      date: new Date(row.Date as string),
       verified: row.Verified === 'Yes',
       sheetName: sheet
     }))

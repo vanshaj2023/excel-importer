@@ -3,7 +3,6 @@
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import * as XLSX from 'xlsx'
-import { formatInTimeZone } from 'date-fns-tz'
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, 
          AlertDialogTitle, AlertDialogDescription } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
@@ -12,7 +11,7 @@ import ValidationErrors from './ValidationErrors'
 
 interface SheetData {
   name: string
-  data: any[]
+  data: Record<string, unknown>[]
   errors: ValidationError[]
 }
 
@@ -45,14 +44,14 @@ export default function FileUpload() {
 
       const sheetsData: SheetData[] = workbook.SheetNames.map(name => ({
         name,
-        data: XLSX.utils.sheet_to_json(workbook.Sheets[name]),
+        data: XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[name]),
         errors: []
       }))
 
       // Validate each sheet
       const allErrors: ValidationError[] = []
       sheetsData.forEach(sheet => {
-        sheet.data.forEach((row: any, index: number) => {
+        sheet.data.forEach((row, index) => {
           const rowErrors = validateRow(row, index + 2)
           if (rowErrors.length) {
             sheet.errors.push(...rowErrors.map(error => ({
@@ -83,7 +82,7 @@ export default function FileUpload() {
     maxSize: 2 * 1024 * 1024 // 2MB
   })
 
-  const validateRow = (row: any, rowNumber: number): string[] => {
+  const validateRow = (row: Record<string, unknown>, rowNumber: number): string[] => {
     const errors: string[] = []
 
     // Required fields
@@ -93,7 +92,7 @@ export default function FileUpload() {
 
     // Date validation
     if (row.Date) {
-      const date = new Date(row.Date)
+      const date = new Date(row.Date as string)
       const currentMonth = new Date().getMonth()
       if (date.getMonth() !== currentMonth) {
         errors.push(`Row ${rowNumber}: Date must be in current month`)
@@ -101,7 +100,7 @@ export default function FileUpload() {
     }
 
     // Amount validation
-    if (row.Amount && (isNaN(row.Amount) || row.Amount <= 0)) {
+    if (row.Amount && (isNaN(row.Amount as number) || (row.Amount as number) <= 0)) {
       errors.push(`Row ${rowNumber}: Amount must be greater than zero`)
     }
 
@@ -111,7 +110,7 @@ export default function FileUpload() {
   const handleImport = async () => {
     const validData = sheets
       .find(sheet => sheet.name === selectedSheet)
-      ?.data.filter((row: any, index: number) => !validateRow(row, index + 2).length)
+      ?.data.filter((row, index) => !validateRow(row, index + 2).length)
 
     if (!validData?.length) return
 
@@ -152,7 +151,11 @@ export default function FileUpload() {
 
       {sheets.length > 0 && (
         <div className="space-y-4">
+          <label htmlFor="sheet-select" className="block text-sm font-medium text-gray-700">
+            Select a sheet
+          </label>
           <select
+            id="sheet-select"
             value={selectedSheet}
             onChange={(e) => setSelectedSheet(e.target.value)}
             className="border rounded p-2"
